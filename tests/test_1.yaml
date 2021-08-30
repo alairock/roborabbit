@@ -1,0 +1,49 @@
+# Connection info
+host: localhost
+username: guest
+password: guest
+virtualhost: /
+port: 5672
+
+# Exchange declarations
+exchanges:
+  - name: exchange_1
+    type: topic
+  - name: exchange_2
+    type: headers
+    durable: false
+    auto_delete: true
+
+# queue declarations
+queues:
+  - name: queue_1
+    type: quorum # Not required. This is the default
+    # create_dlq: true # TODO: This is the default. Set to false if you do not want a dead letter queue/exchange for this queue
+  - name: queue_2
+    durable: true # this is the default
+    robust: true # this is the default
+    auto_delete: false # this is the default
+    exclusive: false # this is the default
+    auto_delete_delay: 0 # this is the default
+    arguments:
+      key_1: value_1
+      key_2: value_2
+
+# bindings
+bindings:
+  - from:
+      type: exchange
+      name: exchange_1
+    to:
+      type: queue
+      name: queue_1
+    routing_key: records.created # routing_key to bind to, default is "#"
+  - from:
+      type: exchange
+      name: exchange_2
+    to:
+      type: queue
+      name: queue_1
+    bind_options: # required if binding to a header exchange
+      x-match: all # header type of matcher
+      hw-action: record.created # header topic to be bound
