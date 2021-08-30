@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "roborabbit"
-version = "0.1.2"
+version = "0.1.6"
 description = "Set up your rabbit instance using a declarative yaml file."
 authors = ["Skyler Lewis <skyler@hivewire.co>"]
 license = "Apache-2.0"
 readme = "README.md"
-homepage = "https://hivewire.co"
+homepage = "https://github.com/alairock/roborabbit"
 repository = "https://github.com/alairock/roborabbit"
-documentation = "https://github.com/alairock/roborabbit/-/blob/master/README.md"
+documentation = "https://github.com/alairock/roborabbit/blob/main/README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -23,4 +23,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-roborabbit = "run:config_rmq"
+roborabbit = "roborabbit.main:main"
