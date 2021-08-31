@@ -6,6 +6,33 @@ Set up your rabbit instance using a declarative yaml file.
 
 `roborabbit --config path/to/roborabbit.yaml`
 
+### info
+
+```
+Usage: roborabbit [OPTIONS]
+
+  import yaml config file and creates a dictionary from it
+
+Options:
+  --config TEXT       Path to rabbit config yaml file
+  --host TEXT         RabbitMQ host
+  --port TEXT         RabbitMQ port
+  --virtualhost TEXT  RabbitMQ virtualhost
+  --username TEXT     RabbitMQ username
+  --password TEXT     RabbitMQ password
+  --help              Show this message and exit.
+```
+
+## Override environment variables
+
+```
+RABBIT_USER=guest
+RABBIT_PASS=guest
+RABBIT_HOST=localhost
+RABBIT_PORT=5672
+RABBIT_VHOST=/
+```
+
 ## Example yaml files
 
 ### Simple declare queue, exchange, and bind

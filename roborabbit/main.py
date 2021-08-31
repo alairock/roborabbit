@@ -14,12 +14,28 @@ logger = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option('--config', default='config.yml', help='Path to config file')
-def main(config):
+@click.option('--config', default='config.yml', help='Path to rabbit config yaml file')
+@click.option('--host', help='RabbitMQ host')
+@click.option('--port', help='RabbitMQ port')
+@click.option('--virtualhost', help='RabbitMQ virtualhost')
+@click.option('--username', help='RabbitMQ username')
+@click.option('--password', help='RabbitMQ password')
+def main(config, host=None, port=None, virtualhost=None, username=None, password=None):
     """import yaml config file and creates a dictionary from it"""
     # get the path to the config file
     path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     path = os.path.join(path, config)
+
+    if host:
+        os.environ['RABBIT_HOST'] = host
+    if port:
+        os.environ['RABBIT_PORT'] = port
+    if virtualhost:
+        os.environ['RABBIT_VHOST'] = virtualhost
+    if username:
+        os.environ['RABBIT_USER'] = username
+    if password:
+        os.environ['RABBIT_PASS'] = password
 
     # open the config file and read it
     asyncio.run(create_from_config(path))
@@ -47,9 +63,14 @@ async def create_from_config(path):
     for _ in range(10):
         # try to connect 10 times
         try:
-            logger.info('Connecting...')
             vh = cfg['virtualhost'] if cfg['virtualhost'] != '/' else ''
-            connection_url = f"amqp://{cfg['username']}:{cfg['password']}@{cfg['host']}:{cfg['port']}/{vh}"
+            username = os.getenv('RABBIT_USER', cfg['username'])
+            password = os.getenv('RABBIT_PASS', cfg['password'])
+            host = os.getenv('RABBIT_HOST', cfg['host'])
+            port = os.getenv('RABBIT_PORT', cfg['port'])
+            virtualhost = os.getenv('RABBIT_VHOST', vh)
+            connection_url = f"amqp://{username}:{password}@{host}:{port}/{virtualhost}"
+            logger.info(f'Connecting to {connection_url}')
             connection: aio_pika.RobustConnection = await aio_pika.connect_robust(
                 connection_url,
                 client_properties={"client_properties": {

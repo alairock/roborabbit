@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "roborabbit"
-version = "0.1.6"
+version = "0.1.7"
 description = "Set up your rabbit instance using a declarative yaml file."
 authors = ["Skyler Lewis <skyler@hivewire.co>"]
 license = "Apache-2.0"
