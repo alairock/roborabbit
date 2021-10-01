@@ -37,7 +37,9 @@ bindings:
     to:
       type: queue
       name: queue_1
-    routing_key: records.created # routing_key to bind to, default is "#"
+    routing_keys:
+      - records.created # routing_key to bind to, default is "#"
+      - records.updated # routing_key to bind to, default is "#"
   - from:
       type: exchange
       name: exchange_2
@@ -45,5 +47,5 @@ bindings:
       type: queue
       name: queue_1
     bind_options: # required if binding to a header exchange
-      x-match: all # header type of matcher
-      hw-action: record.created # header topic to be bound
+      - x-match: all # header type of matcher
+        hw-action: record.created # header topic to be bound

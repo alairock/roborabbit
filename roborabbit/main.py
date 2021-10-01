@@ -1,10 +1,5 @@
 import click
-import yaml
 import os
-import sys
-import pprint
-import json
-import aio_pika
 import asyncio
 from roborabbit.rmq import create_from_config
 

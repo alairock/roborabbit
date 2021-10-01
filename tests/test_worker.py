@@ -1,14 +1,14 @@
 import asyncio
-from roborabbit.rmq import worker
-import asyncio
+from roborabbit.roborabbit import RoboRabbit
+
+
+async def handler(event):
+    print(event)
 
 
 async def work():
-    # await worker('queue_1', 'tests/test_1.yaml')
-    print('start work')
-    async for r in worker('queue_1', 'tests/test_1.yaml'):
-        print(r)
-        print('taking a message!')
+    robo = RoboRabbit('tests/test_1.yaml')
+    await robo.run({'queue_1': handler})
 
 try:
     asyncio.run(work())

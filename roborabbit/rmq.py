@@ -1,14 +1,10 @@
-import asyncio
 from roborabbit.logger import logger
 from roborabbit.connection import connect
-import click
 import yaml
 import os
 import sys
-import pprint
 import json
 import aio_pika
-import asyncio
 
 
 exchange_type_map = {
@@ -70,16 +66,16 @@ async def bind_queues(bindings, x_conns, q_conns):
             raise Exception(f"Unknown to type {binding['to']['type']}")
 
         if binding.get('bind_options'):
-            logger.info(
-                f'Binding {from_qx.name} to {to_qx.name} using {json.dumps(binding.get("bind_options"))}')
-            await to_qx.bind(
-                from_qx,
-                arguments=binding.get('bind_options')
-            )
+            for _options in binding.get('bind_options'):
+                logger.info(f'Binding {from_qx.name} to {to_qx.name} using {json.dumps(_options)}')
+                await to_qx.bind(
+                    from_qx,
+                    arguments=_options
+                )
         else:
-            logger.info(
-                f'Binding {from_qx.name} to {to_qx.name} using routing_key "{binding["routing_key"]}"')
-            await to_qx.bind(from_qx, routing_key=binding['routing_key'])
+            logger.info(f'Binding {from_qx.name} to {to_qx.name} using routing_key "{binding["routing_keys"]}"')
+            for _key in binding['routing_keys']:
+                await to_qx.bind(from_qx, routing_key=_key)
 
 
 async def create_from_config(path):
@@ -116,23 +112,3 @@ async def create_from_config(path):
     # TODO: Create dead letter queues
 
     return connection, q_conns
-
-
-async def worker(queue, config_path):
-    # start a rabbit connection
-
-    # create from path
-    connection, queues = await create_from_config(config_path)
-
-    if queue in queues:
-        async with queues[queue].iterator() as _q:
-            async for message in _q:
-                try:
-                    yield message
-                    message.ack()
-                except asyncio.CancelledError:
-                    message.nack()
-                    connection.close()
-                except Exception as e:
-                    logger.error(e)
-                    message.reject()
