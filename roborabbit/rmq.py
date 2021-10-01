@@ -34,19 +34,34 @@ async def create_queues(queues, channel):
     q_conns = {}
     for queue in queues:
         logger.info('Declaring queue: %s', queue['name'])
-        dlq_args = {
+        q_args = {
             **{"x-queue-type": queue.get("type", "quorum")},
             **queue.get("arguments", {})
         }
 
         q_conns[queue['name']] = await channel.declare_queue(
             queue['name'],
-            arguments=dlq_args,
+            arguments=q_args,
             durable=queue.get('durable', True),
             robust=queue.get('robust', True),
             auto_delete=queue.get('auto_delete', False),
             exclusive=queue.get('exclusive', False)
         )
+        dlx = await channel.declare_exchange(
+            f"{queue['name']}_dlx",
+            type=aio_pika.ExchangeType.TOPIC,
+            durable=True,
+            auto_delete=False
+        )
+        dlq = await channel.declare_queue(
+            f"{queue['name']}_dlq",
+            arguments=q_args,
+            durable=True,
+            robust=True,
+            auto_delete=False,
+            exclusive=False
+        )
+        await dlx.bind(dlq, routing_key='#')
     return q_conns
 
 
