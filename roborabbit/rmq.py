@@ -92,10 +92,13 @@ async def bind_queues(bindings, x_conns, q_conns):
                     from_qx,
                     arguments=_options
                 )
-        else:
+        elif "routing_keys" in binding.keys():
             logger.info(f'Binding {from_qx.name} to {to_qx.name} using routing_key "{binding["routing_keys"]}"')
             for _key in binding['routing_keys']:
                 await to_qx.bind(from_qx, routing_key=_key)
+        else:
+            logger.info(f'Binding {from_qx.name} to {to_qx.name} using routing_key "#"')
+            await to_qx.bind(from_qx, routing_key="#")
 
 
 async def create_from_config(path: Path):

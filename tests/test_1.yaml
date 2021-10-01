@@ -13,6 +13,8 @@ exchanges:
     type: headers
     durable: false
     auto_delete: true
+  - name: exchange_3
+    type: topic
 
 # queue declarations
 queues:
@@ -29,6 +31,7 @@ queues:
     arguments:
       key_1: value_1
       key_2: value_2
+  - name: queue_3
 
 # bindings
 bindings:
@@ -50,3 +53,9 @@ bindings:
     bind_options: # required if binding to a header exchange
       - x-match: all # header type of matcher
         hw-action: record.created # header topic to be bound
+  - from:
+      type: exchange
+      name: exchange_3
+    to:
+      type: queue
+      name: queue_3
