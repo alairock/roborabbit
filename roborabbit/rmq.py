@@ -34,27 +34,20 @@ async def create_queues(queues, channel):
     q_conns = {}
     for queue in queues:
         logger.info('Declaring queue: %s', queue['name'])
+        dlx_name = queue.get('dlx', f"{queue['name']}_dlx")
+        dlq_name = queue.get('dlq', f"{queue['name']}_dlq")
         q_args = {
             **{"x-queue-type": queue.get("type", "quorum")},
             **queue.get("arguments", {})
         }
 
-        q_conns[queue['name']] = await channel.declare_queue(
-            queue['name'],
-            arguments=q_args,
-            durable=queue.get('durable', True),
-            robust=queue.get('robust', True),
-            auto_delete=queue.get('auto_delete', False),
-            exclusive=queue.get('exclusive', False)
-        )
-        dlx_name = queue.get('dlx', f"{queue['name']}_dlx")
-        dlx = await channel.declare_exchange(
+        await channel.declare_exchange(
             dlx_name,
             type=aio_pika.ExchangeType.TOPIC,
             durable=True,
             auto_delete=False
         )
-        dlq_name = queue.get('dlq', f"{queue['name']}_dlq")
+
         dlq = await channel.declare_queue(
             dlq_name,
             arguments=q_args,
@@ -64,6 +57,15 @@ async def create_queues(queues, channel):
             exclusive=False
         )
         await dlq.bind(dlx_name, routing_key='#')
+
+        q_conns[queue['name']] = await channel.declare_queue(
+            queue['name'],
+            arguments={"x-dead-letter-exchange": dlx_name, **q_args},
+            durable=queue.get('durable', True),
+            robust=queue.get('robust', True),
+            auto_delete=queue.get('auto_delete', False),
+            exclusive=queue.get('exclusive', False)
+        )
     return q_conns
 
 
