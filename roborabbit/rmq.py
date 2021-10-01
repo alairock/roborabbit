@@ -47,21 +47,23 @@ async def create_queues(queues, channel):
             auto_delete=queue.get('auto_delete', False),
             exclusive=queue.get('exclusive', False)
         )
+        dlx_name = queue.get('dlx', f"{queue['name']}_dlx")
         dlx = await channel.declare_exchange(
-            f"{queue['name']}_dlx",
+            dlx_name,
             type=aio_pika.ExchangeType.TOPIC,
             durable=True,
             auto_delete=False
         )
+        dlq_name = queue.get('dlq', f"{queue['name']}_dlq")
         dlq = await channel.declare_queue(
-            f"{queue['name']}_dlq",
+            dlq_name,
             arguments=q_args,
             durable=True,
             robust=True,
             auto_delete=False,
             exclusive=False
         )
-        await dlx.bind(dlq, routing_key='#')
+        await dlq.bind(dlx_name, routing_key='#')
     return q_conns
 
 

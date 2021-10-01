@@ -18,7 +18,8 @@ exchanges:
 queues:
   - name: queue_1
     type: quorum # Not required. This is the default
-    # create_dlq: true # TODO: This is the default. Set to false if you do not want a dead letter queue/exchange for this queue
+    dlq: queue_1_dlq # Optional, dead letter queues are autocreated as `{queue_name}_dlq`
+    dlx: queue_1_dlx # Optional, dead letter exchanges are autocreated as `{queue_name}_dlx`
   - name: queue_2
     durable: true # this is the default
     robust: true # this is the default
