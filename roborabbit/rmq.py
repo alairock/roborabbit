@@ -1,7 +1,8 @@
+from pathlib import Path
+
 from roborabbit.logger import logger
 from roborabbit.connection import connect
 import yaml
-import os
 import sys
 import json
 import aio_pika
@@ -78,19 +79,16 @@ async def bind_queues(bindings, x_conns, q_conns):
                 await to_qx.bind(from_qx, routing_key=_key)
 
 
-async def create_from_config(path):
+async def create_from_config(path: Path):
     # open the config file and read it
     try:
-        _path = path
-        if type(path) is str:
-            _path = os.path.dirname(
-                os.path.dirname(os.path.realpath(__file__)))
-            _path = os.path.join(_path, path)
-        logger.info(f'Config file: {_path}')
-        with open(_path, 'r') as ymlfile:
+        if not isinstance(path, Path):
+            raise Exception('Must pass pathlib.Path as path')
+        logger.info(f'Config file: {path}')
+        with open(path, 'r') as ymlfile:
             cfg = yaml.safe_load(ymlfile)
     except FileNotFoundError:
-        print(f'file not found: {_path}')
+        print(f'file not found: {path.absolute()}')
         sys.exit(1)
 
     # connect to the RabbitMQ server
