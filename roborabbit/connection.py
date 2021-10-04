@@ -11,9 +11,9 @@ async def connect(cfg=None):
             vh = cfg['virtualhost'] if cfg['virtualhost'] != '/' else ''
             username = os.getenv('RABBIT_USER', cfg['username'])
             password = os.getenv('RABBIT_PASS', cfg['password'])
-            host = os.getenv('RABBIT_HOST', cfg['host'])
+            host = os.getenv('RABBIT_HOST', os.getenv('RABBIT_URL', cfg['host']))
             port = os.getenv('RABBIT_PORT', cfg['port'])
-            virtualhost = os.getenv('RABBIT_VHOST', vh)
+            virtualhost = os.getenv('RABBIT_VHOST', os.getenv('RABBIT_VIRTUALHOST', vh))
             connection_url = f"amqp://{username}:{password}@{host}:{port}/{virtualhost}"
             logger.info(f'Connecting to {connection_url}')
             connection: aio_pika.RobustConnection = await aio_pika.connect_robust(
@@ -27,9 +27,9 @@ async def connect(cfg=None):
             # try again
             logger.info('Connection failed, trying again...')
             await asyncio.sleep(3)
-        else:
-            raise ConnectionError(
-                f"Could not connect to rabbit at {cfg.url} "
-                f"with username {cfg.username}"
-            )
+    else:
+        raise ConnectionError(
+            f"Could not connect to rabbit at {cfg.url} "
+            f"with username {cfg.username}"
+        )
     return connection

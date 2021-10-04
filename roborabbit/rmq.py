@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from roborabbit.logger import logger
@@ -118,6 +119,7 @@ async def create_from_config(path: Path):
 
     logger.info('Creating channel')
     channel: aio_pika.Channel = await connection.channel()
+    await channel.set_qos(prefetch_count=os.getenv('RABBIT_PREFETCH', cfg.get('prefetch', 1)))
 
     # declare the exchanges
     x_conns = await create_exchanges(cfg['exchanges'], channel)
