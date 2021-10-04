@@ -16,14 +16,13 @@ class RoboRabbit:
             self.connection, self.queues = await create_from_config(self.path)
             self.initialized = True
 
-    async def _worker(self, queue):
+    async def _job_definition(self, queue, callback):
         if queue not in self.queues:
             raise Exception(f'Queue is not in your configuration: {queue}')
-
         async with self.queues[queue].iterator() as _q:
             async for message in _q:
                 try:
-                    yield message
+                    await callback(message)
                     message.ack()
                 except asyncio.CancelledError:
                     message.nack()
@@ -31,10 +30,6 @@ class RoboRabbit:
                 except Exception as e:
                     logger.error(e)
                     message.reject()
-
-    async def _job_definition(self, queue, callback):
-        async for message in self._worker(queue):
-            await callback(message)
 
     async def run(self, queue_map):
         await self._startup()
