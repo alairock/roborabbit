@@ -187,7 +187,8 @@ exchanges:
 queues:
   - name: string
     type: quorum # Not required. This is the default and currently only option available (For us, all our queues are quorum. We manually create the queue that needs other requirements). MR welcome
-    # create_dlq: true # TODO: This will be the default. Set to false if you do not want a dead letter queue/exchange for this queue
+    dlq: string # default {queue_name}_dlq
+    dlx: string # default {queue_name}_dlx
     durable: true # default
     robust: true # default
     auto_delete: false # default
@@ -211,3 +212,7 @@ bindings:
       - x-match: all|any # header type of matcher
         header-key: string # header topic to be matched
 ```
+
+## Planned features:
+- Simple message publishing
+- Expose the underlying channel so you can drop right into aio_pika if you want.
