@@ -1,9 +1,24 @@
 # RoboRabbit
-## Main features
-- An extremely simple worker class. (!!!!)
-- Set up your rabbit queues, exchanges, and bindings using a _declarative_ yaml configuration file.
+RoboRabbit is a simple to use, opinionated, asynchronous abstraction over amqp/RabbitMQ (using aio_pika) and configuration CLI.
+
+
+## Features
+- Create/assert Queues, Exchanges, and Bindings on connection
+- Declarative Queue, Exchange, Binding, and Connection configuration using YAML
+- Very straight forward async message handling
 - Command line interface for bootstrapping rabbit from your roborabbit yaml config file.
 
+### Notes
+
+- Dead letter exchanges/queues are created and bound for you. (default is {queue_name}_dlq and {queue_name}_dlx)
+- Messages are `reject`ed and pushed into the dead letter queue when an exception is thrown.
+- Messages are `nack`ed and returned to queue when disconnected (asyncio.CancelledError).
+- Messages are `ack`ed automatically after the callback has run without exception.
+- Multiple queues can be listened to at the same time.
+- Connection is honored in the following order
+  - The `Connection()` class
+  - Connection parameters defined in your roborabbit.yaml file
+  - Default RabbitMQ connection values
 
 ## Worker
 
