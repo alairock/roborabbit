@@ -1,6 +1,55 @@
 # RoboRabbit
+## Main features
+- An extremely simple worker class. (!!!!)
+- Set up your rabbit queues, exchanges, and bindings using a _declarative_ yaml configuration file.
+- Command line interface for bootstrapping rabbit from your roborabbit yaml config file.
 
-Set up your rabbit instance using a declarative yaml file.
+
+## Worker
+
+The simplest worker possible. Connection information is in the `roborabbit.yaml` file. The method `run()` takes an dictionary with a key/value pair:
+- key: `queue` - string, the name of the queue to listen to
+- value: `handler` - function, the callback function messages will be sent to
+
+### Basic Example
+```py
+from roborabbit.roborabbit import RoboRabbit
+from pathlib import Path
+
+config_path = Path('roborabbit.yaml')
+robo = RoboRabbit(config_path)
+
+async def queue_handler(msg):
+    print(msg)  # your logic here
+
+await robo.run({'queue_1', queue_handler})
+```
+
+### Explicit connection example
+
+If you want control over the configuration, you can pass in the roborabbit connection object.
+
+```py
+from roborabbit.connection import Connection
+from roborabbit.roborabbit import RoboRabbit
+from pathlib import Path
+
+config_path = Path('roborabbit.yaml')
+connection = Connection(
+    host='not.localhost.com',
+    username='bob',
+    password='pas123',
+    port=4499,
+    virtualhost='/')
+
+robo = RoboRabbit(config_path, connection)
+
+async def queue_handler(msg):
+    print(msg)  # your logic here
+
+async def work():
+    await robo.run({'queue_1', queue_handler})
+```
 
 ## Command
 
@@ -38,7 +87,6 @@ RABBIT_VHOST=/
 ### Simple declare queue, exchange, and bind
 
 ```
-# Connection info
 host: localhost
 username: guest
 password: guest
@@ -56,13 +104,13 @@ bindings:
     to:
       type: queue
       name: queue_1
-    routing_key: records.created
+    routing_keys:
+      - records.created
 ```
 
 ### Header exchange declaration and binding
 
 ```
-# Connection info
 host: localhost
 username: guest
 password: guest
@@ -81,8 +129,8 @@ bindings:
       type: queue
       name: queue_1
     bind_options:
-      x-match: all
-      hw-action: header-value
+      - x-match: all
+        hw-action: header-value
 ```
 
 ## All Values Available
@@ -124,8 +172,9 @@ bindings:
     to:
       type: exchange|queue
       name: string
-    routing_key: string # required, unless bind_options is defined
-    bind_options: # required if binding to a header exchange
-      x-match: all|any # header type of matcher
-      header-key: string # header topic to be matched
+    routing_keys:
+      - record.created  # list of string, required, unless bind_options is defined
+    bind_options: # list of `x-match` and `header-key`, required if binding to a header exchange
+      - x-match: all|any # header type of matcher
+        header-key: string # header topic to be matched
 ```

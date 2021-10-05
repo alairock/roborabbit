@@ -9,7 +9,7 @@ async def handler(event):
 
 
 async def work():
-    connection = Connection(host='localhostz', username='bob', password='zit', port=4499, virtualhost='/risetn')
+    connection = Connection(host='localhostz', username='bob', password='pas123', port=4499, virtualhost='/')
     robo = RoboRabbit(Path('test_1.yaml'), connection)
     await robo.run({'queue_1': handler})
 
