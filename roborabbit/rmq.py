@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from roborabbit.logger import logger
-from roborabbit.connection import connect
+from roborabbit.connection import connect, Connection
 import yaml
 import sys
 import json
@@ -102,7 +102,22 @@ async def bind_queues(bindings, x_conns, q_conns):
             await to_qx.bind(from_qx, routing_key="#")
 
 
-async def create_from_config(path: Path):
+def update_con_with_explicit(cfg, connection):
+    if connection.host:
+        cfg['host'] = connection.host
+    if connection.port:
+        cfg['port'] = connection.port
+    if connection.username:
+        cfg['username'] = connection.username
+    if connection.password:
+        cfg['password'] = connection.password
+    if connection.virtualhost:
+        cfg['virtualhost']  = connection.virtualhost
+
+    return cfg
+
+
+async def create_from_config(path: Path, _connection: Connection = None):
     # open the config file and read it
     try:
         if not isinstance(path, Path):
@@ -114,21 +129,24 @@ async def create_from_config(path: Path):
         print(f'file not found: {path.absolute()}')
         sys.exit(1)
 
+    if _connection:
+        cfg = update_con_with_explicit(cfg, _connection)
+
     # connect to the RabbitMQ server
     connection = await connect(cfg)
 
     logger.info('Creating channel')
     channel: aio_pika.Channel = await connection.channel()
-    await channel.set_qos(prefetch_count=os.getenv('RABBIT_PREFETCH', cfg.get('prefetch', 1)))
+    await channel.set_qos(prefetch_count=cfg.get('prefetch', os.getenv('RABBIT_PREFETCH', 1)))
 
     # declare the exchanges
-    x_conns = await create_exchanges(cfg['exchanges'], channel)
+    x_conns = await create_exchanges(cfg.get('exchanges', []), channel)
 
     # declare the queues
-    q_conns = await create_queues(cfg['queues'], channel)
+    q_conns = await create_queues(cfg.get('queues', []), channel)
 
     # bind the queues to the exchanges
-    await bind_queues(cfg['bindings'], x_conns, q_conns)
+    await bind_queues(cfg.get('bindings', []), x_conns, q_conns)
 
     logger.warn('Done!')
     # TODO: Create dead letter queues

@@ -8,12 +8,11 @@ async def connect(cfg=None):
     for _ in range(10):
         # try to connect 10 times
         try:
-            vh = cfg['virtualhost'] if cfg['virtualhost'] != '/' else ''
-            username = os.getenv('RABBIT_USER', cfg['username'])
-            password = os.getenv('RABBIT_PASS', cfg['password'])
-            host = os.getenv('RABBIT_HOST', os.getenv('RABBIT_URL', cfg['host']))
-            port = os.getenv('RABBIT_PORT', cfg['port'])
-            virtualhost = os.getenv('RABBIT_VHOST', os.getenv('RABBIT_VIRTUALHOST', vh))
+            username = cfg.get('username', os.getenv('RABBIT_USER', '/'))
+            password = cfg.get('password', os.getenv('RABBIT_PASS', 'guest'))
+            host = cfg.get('host', os.getenv('RABBIT_HOST', os.getenv('RABBIT_URL', 'localhost')))
+            port = cfg.get('port', os.getenv('RABBIT_PORT', 5672))
+            virtualhost = cfg.get('virtualhost', os.getenv('RABBIT_VHOST', os.getenv('RABBIT_VIRTUALHOST', '/')))
             connection_url = f"amqp://{username}:{password}@{host}:{port}/{virtualhost}"
             logger.info(f'Connecting to {connection_url}')
             connection: aio_pika.RobustConnection = await aio_pika.connect_robust(
@@ -33,3 +32,17 @@ async def connect(cfg=None):
             f"with username {cfg.username}"
         )
     return connection
+
+
+class Connection:
+    def __init__(self,
+                 host=None,
+                 username=None,
+                 password=None,
+                 port=None,
+                 virtualhost=None):
+        self.host = host
+        self.username = username
+        self.password = password
+        self.port = port
+        self.virtualhost = virtualhost

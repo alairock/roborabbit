@@ -1,5 +1,6 @@
 import asyncio
 from roborabbit.roborabbit import RoboRabbit
+from roborabbit.connection import Connection
 from pathlib import Path
 
 
@@ -8,7 +9,8 @@ async def handler(event):
 
 
 async def work():
-    robo = RoboRabbit(Path('test_1.yaml'))
+    connection = Connection(host='localhostz', username='bob', password='zit', port=4499, virtualhost='/risetn')
+    robo = RoboRabbit(Path('test_1.yaml'), connection)
     await robo.run({'queue_1': handler})
 
 try:

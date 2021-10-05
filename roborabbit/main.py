@@ -2,6 +2,7 @@ import click
 import os
 import asyncio
 from roborabbit.rmq import create_from_config
+from pathlib import Path
 
 
 @click.command()
@@ -14,8 +15,7 @@ from roborabbit.rmq import create_from_config
 def main(config=None, host=None, port=None, virtualhost=None, username=None, password=None):
     """import yaml config file and creates a dictionary from it"""
     # get the path to the config file
-    path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    path = os.path.join(path, config)
+    path = Path(config)
 
     if host:
         os.environ['RABBIT_HOST'] = host

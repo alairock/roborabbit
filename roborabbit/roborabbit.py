@@ -1,11 +1,13 @@
 import asyncio
 
+from roborabbit.connection import Connection
 from roborabbit.logger import logger
 from roborabbit.rmq import create_from_config
 
 
 class RoboRabbit:
-    def __init__(self, path):
+    def __init__(self, path, connection: Connection = None):
+        self.connection_config = connection
         self.path = path
         self.initialized = False
         self.connection = None
@@ -13,7 +15,7 @@ class RoboRabbit:
 
     async def _startup(self):
         if not self.initialized:
-            self.connection, self.queues = await create_from_config(self.path)
+            self.connection, self.queues = await create_from_config(self.path, _connection=self.connection_config)
             self.initialized = True
 
     async def _job_definition(self, queue, callback):
