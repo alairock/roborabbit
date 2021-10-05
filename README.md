@@ -8,6 +8,20 @@ RoboRabbit is a simple to use, opinionated, asynchronous abstraction over amqp/R
 - Very straight forward async message handling
 - Command line interface for bootstrapping rabbit from your roborabbit yaml config file.
 
+## Installation
+
+#### pip
+$ `pip install roborabbit`
+
+#### poetry
+$ `poetry add roborabbit`
+
+## Handle queue messages
+
+The simplest worker possible. Connection information is in the `roborabbit.yaml` file. The method `run()` takes an dictionary with a key/value pair:
+- key: `queue` - string, the name of the queue to listen to
+- value: `handler` - function, the callback function messages will be sent to
+
 ### Notes
 
 - Dead letter exchanges/queues are created and bound for you. (default is {queue_name}_dlq and {queue_name}_dlx)
@@ -18,13 +32,17 @@ RoboRabbit is a simple to use, opinionated, asynchronous abstraction over amqp/R
 - Connection is honored in the following order
   - The `Connection()` class
   - Connection parameters defined in your roborabbit.yaml file
+  - Environment variables (see environment variables section)
   - Default RabbitMQ connection values
 
-## Worker
+### environment variables
+- `RABBIT_HOST` default 'localhost'
+- `RABBIT_USER` default 'guest'
+- `RABBIT_PASS` default 'guest'
+- `RABBIT_PORT` default 5432
+- `RABBIT_VIRTUALHOST` default '/'
+- `RABBIT_PREFETCH` default 10
 
-The simplest worker possible. Connection information is in the `roborabbit.yaml` file. The method `run()` takes an dictionary with a key/value pair:
-- key: `queue` - string, the name of the queue to listen to
-- value: `handler` - function, the callback function messages will be sent to
 
 ### Basic Example
 ```py
