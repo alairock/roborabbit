@@ -41,7 +41,7 @@ class RoboRabbit:
                     await message.nack()
                     self.connection.close()
                 except Exception as e:
-                    logger.error(e)
+                    logger.error('Bad things happened. Rejecting message with error:', e)
                     await message.reject()
 
     async def run(self, queue_map):
