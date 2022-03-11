@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "roborabbit"
-version = "0.2.9"
+version = "0.4.0"
 description = "Set up your rabbit instance using a declarative yaml file."
 authors = ["Skyler Lewis <skyler@hivewire.co>"]
 license = "Apache-2.0"
@@ -11,9 +11,9 @@ documentation = "https://github.com/alairock/roborabbit/blob/main/README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-click = "^8.0.1"
-PyYAML = "^5.4.1"
-aio-pika = "^6.8.0"
+click = "^8.0"
+PyYAML = "^5.4"
+aio-pika = "^7.1"
 
 [tool.poetry.dev-dependencies]
 

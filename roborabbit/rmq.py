@@ -37,31 +37,44 @@ async def create_queues(queues, channel):
         logger.info('Declaring queue: %s', queue['name'])
         dlx_name = queue.get('dlx', f"{queue['name']}_dlx")
         dlq_name = queue.get('dlq', f"{queue['name']}_dlq")
-        q_args = {
-            **{"x-queue-type": queue.get("type", "quorum")},
-            **queue.get("arguments", {})
-        }
 
-        await channel.declare_exchange(
-            dlx_name,
-            type=aio_pika.ExchangeType.TOPIC,
-            durable=True,
-            auto_delete=False
-        )
+        if not queue.get("no_dl", False):
+            q_args = {
+                **{"x-queue-type": queue.get("type", "quorum")},
+                **queue.get("arguments", {})
+            }
+            await channel.declare_exchange(
+                dlx_name,
+                type=aio_pika.ExchangeType.TOPIC,
+                durable=True,
+                auto_delete=False
+            )
 
-        dlq = await channel.declare_queue(
-            dlq_name,
-            arguments=q_args,
-            durable=True,
-            robust=True,
-            auto_delete=False,
-            exclusive=False
-        )
-        await dlq.bind(dlx_name, routing_key='#')
+            dlq = await channel.declare_queue(
+                dlq_name,
+                arguments=q_args,
+                durable=True,
+                robust=True,
+                auto_delete=False,
+                exclusive=False
+            )
+            await dlq.bind(dlx_name, routing_key='#')
+
+        q_args = queue.get("arguments", {})
+        if queue.get('x-dead-letter-exchange', dlx_name):
+            q_args = {
+                **q_args,
+                **{"x-dead-letter-exchange": queue.get('x-dead-letter-exchange', dlx_name)}
+            }
+        if queue.get('type', dlx_name):
+            q_args = {
+                **q_args,
+                **{"x-queue-type": queue.get('type', "quorum")}
+            }
 
         q_conns[queue['name']] = await channel.declare_queue(
             queue['name'],
-            arguments={"x-dead-letter-exchange": dlx_name, **q_args},
+            arguments={**q_args},
             durable=queue.get('durable', True),
             robust=queue.get('robust', True),
             auto_delete=queue.get('auto_delete', False),
@@ -117,8 +130,7 @@ def update_con_with_explicit(cfg, connection):
     return cfg
 
 
-async def create_from_config(path: Path, _connection: Connection = None):
-    # open the config file and read it
+async def resolve_path(path, _connection):
     try:
         if not isinstance(path, Path):
             raise Exception('Must pass pathlib.Path as path')
@@ -131,6 +143,12 @@ async def create_from_config(path: Path, _connection: Connection = None):
 
     if _connection:
         cfg = update_con_with_explicit(cfg, _connection)
+    return cfg
+
+
+async def create_from_config(path: Path, _connection: Connection = None):
+    # open the config file and read it
+    cfg = await resolve_path(path, _connection)
 
     # connect to the RabbitMQ server
     connection = await connect(cfg)

@@ -6,6 +6,8 @@ from roborabbit.rmq import create_from_config
 
 
 class RoboRabbit:
+    _connection = None
+
     def __init__(self, path, connection: Connection = None):
         self.connection_config = connection
         self.path = path
@@ -13,9 +15,18 @@ class RoboRabbit:
         self.connection = None
         self.queues = None
 
+    @classmethod
+    def set_conn(cls, connection):
+        cls._connection = connection
+
+    @classmethod
+    async def get_conn(cls):
+        return cls._connection
+
     async def _startup(self):
         if not self.initialized:
             self.connection, self.queues = await create_from_config(self.path, _connection=self.connection_config)
+            self.set_conn(self.connection)
             self.initialized = True
 
     async def _job_definition(self, queue, callback):
