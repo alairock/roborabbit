@@ -36,13 +36,13 @@ class RoboRabbit:
             async for message in _q:
                 try:
                     await callback(message)
-                    message.ack()
+                    await message.ack()
                 except asyncio.CancelledError:
-                    message.nack()
+                    await message.nack()
                     self.connection.close()
                 except Exception as e:
                     logger.error(e)
-                    message.reject()
+                    await message.reject()
 
     async def run(self, queue_map):
         await self._startup()
